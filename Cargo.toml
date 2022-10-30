@@ -1,5 +1,5 @@
 [package]
-name = "pulsaudio-controller"
+name = "pulseaudio-control"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 libpulse-binding = "2"
+clickrs = "0"
+structopt = "0"
