@@ -1,6 +1,9 @@
 use libpulse_binding::context::introspect::SinkInfo;
 use libpulse_binding::def;
+use libpulse_binding::def::SinkState;
 use libpulse_binding::volume::{ChannelVolumes, Volume};
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
 
 /** Part of the Sink, we actually care about*/
 #[derive(Debug)]
@@ -36,5 +39,35 @@ impl Sink {
             state: i.state,
             n_volume_steps: i.n_volume_steps,
         }
+    }
+}
+
+impl Serialize for Sink {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut state = serializer.serialize_struct("sink", 8)?;
+        state.serialize_field("name", &self.name)?;
+        state.serialize_field("index", &self.index)?;
+        state.serialize_field("description", &self.description)?;
+        let mut volumes = Vec::with_capacity(self.volume.len() as usize);
+        for v in self.volume.get() {
+            volumes.push(v.0);
+        }
+        state.serialize_field("channel_volumes", &volumes)?;
+        state.serialize_field("mute", &self.mute)?;
+        state.serialize_field("base_volume", &self.base_volume.0)?;
+        state.serialize_field(
+            "state",
+            match self.state {
+                SinkState::Invalid => "invalid",
+                SinkState::Running => "running",
+                SinkState::Idle => "idle",
+                SinkState::Suspended => "suspended",
+            },
+        )?;
+        state.serialize_field("n_volume_steps", &self.n_volume_steps)?;
+        state.end()
     }
 }
