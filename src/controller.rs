@@ -18,6 +18,7 @@ use std::borrow::{Borrow, Cow};
 use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;
+use libpulse_binding::context::subscribe::InterestMaskSet;
 
 pub struct Controller {
     mainloop: Rc<RefCell<Mainloop>>,
@@ -74,6 +75,15 @@ impl Controller {
     pub fn shutdown(&mut self) {
         self.context.borrow_mut().disconnect();
         self.mainloop.borrow_mut().quit(Retval(0)); // uncertain whether this is necessary
+    }
+
+    pub fn listen(&mut self) {
+        let context = self.context.clone();
+        self.context.borrow_mut().set_subscribe_callback(Some(Box::new(|a,b,c| {
+
+        })));
+        self.context.borrow_mut().subscribe(InterestMaskSet::ALL, |f| {});
+        self.mainloop.borrow_mut().run().unwrap();
     }
 
     pub fn list_sinks(&mut self) -> crate::errors::Result<Vec<Sink>> {
